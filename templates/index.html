@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PDF Voice Reader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="landing-container">
+    <h1>Listen to your PDFs read aloud effortlessly!</h1>
+
+    <form action="/upload" method="POST" enctype="multipart/form-data" class="upload-form">
+        <label for="pdfFile" class="upload-label">📁 Choose a PDF File</label>
+        <input type="file" name="pdfFile" id="pdfFile" accept=".pdf" required onchange="this.form.submit()">
+    </form>
+
+    {% if text %}
+    <div id="pdf-content" class="content-box">
+        {% for sentence in text.split('.') %}
+            <span class="sentence">{{ sentence.strip() }}.</span>
+        {% endfor %}
+    </div>
+    <button onclick="speakPDF()">🔊 Read Aloud</button>
+    {% endif %}
+</div>
+
+<script>
+    let sentences = [];
+    let current = 0;
+    let synth = window.speechSynthesis;
+
+    function speakPDF() {
+        sentences = Array.from(document.querySelectorAll('.sentence'));
+        current = 0;
+        speakNext();
+    }
+
+    function speakNext() {
+        if (current >= sentences.length) return;
+
+        let sentence = sentences[current];
+        sentence.classList.add('highlight');
+
+        let utterance = new SpeechSynthesisUtterance(sentence.textContent);
+        utterance.onend = () => {
+            sentence.classList.remove('highlight');
+            current++;
+            speakNext();
+        };
+
+        synth.speak(utterance);
+    }
+</script>
+
+</body>
+</html>
